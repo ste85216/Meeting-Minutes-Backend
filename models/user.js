@@ -1,4 +1,4 @@
-import { Schema, model, Error } from 'mongoose'
+import { Schema, model, Error, ObjectId } from 'mongoose'
 import validator from 'validator'
 import bcrypt from 'bcrypt'
 import UserRole from '../enums/UserRole.js'
@@ -16,15 +16,28 @@ const schema = new Schema({
     required: [true, '請輸入使用者密碼']
   },
   tokens: {
-    type: String
+    type: [String]
+  },
+  name: {
+    type: String,
+    required: [true, '請輸入使用者姓名']
   },
   role: {
     type: Number,
     default: UserRole.USER
   },
+  avatar: {
+    type: String,
+    default: 'https://gravatar.com/avatar?d=identicon' // ��設使用 Gravatar
+  },
   userId: {
     type: String,
     unique: true
+  },
+  department: {
+    type: ObjectId,
+    ref: 'departments',
+    default: null
   }
 }, {
   timestamps: true, // 使用者帳號建立時間、更新時間
