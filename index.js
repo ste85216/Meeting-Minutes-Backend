@@ -8,6 +8,7 @@ import mongoSanitize from 'express-mongo-sanitize'
 // 導入路由
 import routeUser from './routes/user.js'
 import routeDepartment from './routes/department.js'
+import routeMeetingRoom from './routes/meetingRoom.js'
 
 // passport
 import './passport/passport.js'
@@ -38,6 +39,7 @@ app.use(mongoSanitize())
 
 app.use('/user', routeUser)
 app.use('/department', routeDepartment)
+app.use('/meetingRoom', routeMeetingRoom)
 
 app.all('*', (req, res) => {
   res.status(StatusCodes.NOT_FOUND).json({
@@ -47,7 +49,7 @@ app.all('*', (req, res) => {
 })
 app.listen(process.env.PORT || 4000, async () => {
   console.log('伺服器啟動')
-  await mongoose.connect(process.env.DB_URL)
+  await mongoose.connect(process.env.DB_URI)
   mongoose.set('sanitizeFilter', true)
   console.log('資料庫連線成功')
 })

@@ -19,7 +19,7 @@ export const create = async (req, res) => {
     const sequenceValue = await getNextSequence('user')
     const userId = `${String(sequenceValue).padStart(4, '0')}`
 
-    const result = await User.create({ ...req.body, userId })
+    const result = await User.create({ ...req.body, userId, department: req.body.department })
 
     res.status(StatusCodes.OK).json({
       success: true,
@@ -71,6 +71,28 @@ export const login = async (req, res) => {
       success: false,
       message: '未知錯誤'
     })
+  }
+}
+
+export const googleCallback = async (req, res) => {
+  try {
+    // 確認該用戶是否已存在於系統中
+    if (!req.user) {
+      // 用戶不存在，重定向到前端登入頁面並附加錯誤訊息
+      return res.redirect(`http://localhost:3000/login?message=${encodeURIComponent('此Email尚未註冊，請聯絡人資')}`)
+    }
+
+    // 生成 JWT token
+    const token = jwt.sign({ _id: req.user._id }, process.env.JWT_SECRET, { expiresIn: '7 days' })
+    req.user.tokens.push(token)
+    await req.user.save()
+
+    // 成功登入後重定向回前端，並附帶 token 和用戶資料
+    res.redirect(`http://localhost:3000/login?token=${token}&email=${req.user.email}&avatar=${req.user.avatar}&name=${req.user.name}&role=${req.user.role}`)
+  } catch (error) {
+    console.error(error)
+    // 捕獲未知錯誤並重定向回登入頁面，顯示一般錯誤訊息
+    res.redirect(`http://localhost:3000/login?message=${encodeURIComponent('未知錯誤，請稍後再試')}`)
   }
 }
 
@@ -135,6 +157,7 @@ export const getAll = async (req, res) => {
     // 根據條件查詢並進行分頁
     const data = await User
       .find(query)
+      .populate('department', 'name')
       .sort({ [sortBy]: sortOrder })
       .skip((page - 1) * itemsPerPage)
       .limit(itemsPerPage)
